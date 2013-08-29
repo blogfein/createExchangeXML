@@ -1,0 +1,15 @@
+package com.blogfein.html.elements;
+
+public enum ETagType {
+	NOT_PARSED,
+	TAG_START,
+	CLOSED_TAG,
+	TAG_NAME,
+	TAG_NAME_END,
+	ATTR_NAME,
+	ATTR_NAME_END,
+	ATTR_NAME_END_HAVE_VALUE,
+	ATTR_VALUE,
+	ATTR_VALUE_END,
+	TAG_END
+}
