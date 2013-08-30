@@ -21,12 +21,18 @@ public class Parser {
 	private CheckStack stack = null;
 	private IParsingFilter filter = null;
 
-	private static Boolean checkdata = false;
+	private static Integer checkdata = 0;
+	private static Hashtable<Integer, String> xmlData;
 	
 	public Parser(File file) throws IOException
 	{
 		this.lexer = new Lexer(file);
 		this.v_Nodes = new Vector<Node>();
+	}
+
+	public Parser()
+	{
+		main();
 	}
 	
 	public Parser(Page page)
@@ -124,9 +130,9 @@ public class Parser {
 	
 	public static void main(String...v)
 	{
-		System.out.println("Parser ..");
+		// System.out.println("Parser ..");
 		// File file = new File("https://open.keb.co.kr/OPFXFR010001.web?schID=opb&mID=OPFXFR0101");
-		//File file = new File("d:\\test.html");
+		// File file = new File("d:\\test.html");
 		try {
 			//URL url_source = new URL("http://news.naver.com/sports/index.nhn?category=baseball&ctg=news&mod=read&office_id=073&article_id=0001965340");
 			URL url_source = new URL("https://open.keb.co.kr/OPFXFR010001.web?schID=opb&mID=OPFXFR0101");
@@ -149,8 +155,10 @@ public class Parser {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		getXmlData();
 	}
-	
+
+	private static Integer cnt1 = 0;
 	public static void dspNode(Node node)
 	{
 		// System.out.println("[NODE]" + node);
@@ -167,27 +175,66 @@ public class Parser {
 					Pattern p2 = Pattern.compile("-onclick : detail");
 					Matcher m2 = p2.matcher(tNode.toString());
 					
-					if (m1.find() || m2.find()) {
-						checkdata = true;
+					if (m2.find()) {
+						checkdata = 1;
 						// System.out.println("TagNode>" + tNode);
 						dspNode(sNode);	// recursive print
-					}
-					else {		
+					} else if (m1.find()) {
+						checkdata = 2;
+						// System.out.println("TagNode>" + tNode);
+						dspNode(sNode);	// recursive print
+					} else {		
 						// System.out.println("일치 갯수:"+cnt);
-						checkdata = false;
+						checkdata = 0;
 						dspNode(sNode);	// recursive print
 						continue;
 					}
 				}
 				else if(sNode instanceof TextNode)
-				{
+				{					
 					TextNode tNode = (TextNode)sNode;
 					if (tNode.getParsedText().trim().equals("")) continue;
-					if (checkdata == true) {
-						System.out.println("TextNode> [" + tNode.getParsedText().trim()+"]");
+					if (checkdata == 2) {
+						// System.out.println("TextNode> [" + tNode.getParsedText().trim()+"]");
+						cnt1++;
+						addAttr(cnt1, tNode.getParsedText().trim());
+					} else if (checkdata == 1) {
+						// System.out.println("TextNode> [" + currencyText +"]...[" + currencySign +"]");
+						cnt1++;
+						addAttr(cnt1, tNode.getParsedText().trim());
 					}
 				}
 			}
 		}
+	}
+
+	private static void addAttr(Integer name, String value)
+	{
+		if(xmlData == null)
+			xmlData = new Hashtable<Integer, String>();
+		//this.v_attrs.add(new STagAttr(name, value));
+		if(name == null) name = 0;
+		if(value == null) value = "NULL";
+		// System.out.println("name:"+name+" / value:"+value);
+		xmlData.put(name, value);
+	}
+	
+	public static Hashtable<Integer, String> getXmlData()
+	{
+		Hashtable<Integer, String> xmlNewData = new Hashtable<Integer, String>();
+
+        // Sort hashtable.
+        Vector v = new Vector(xmlData.keySet());
+        Collections.sort(v);
+
+        // Display (sorted) hashtable.
+        for (Enumeration e = v.elements(); e.hasMoreElements();) {
+             Integer key = (Integer)e.nextElement();
+             String val = (String)xmlData.get(key);              
+             // System.out.println("Key: " + key + " Val: " + val);
+             xmlNewData.put(key, val);
+        }      
+        // System.out.println( ">> " + xmlData );
+		return xmlNewData;
 	}
 }
